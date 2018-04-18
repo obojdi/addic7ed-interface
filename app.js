@@ -1,33 +1,42 @@
 var
 	express = require('express'),
 	path = require('path'),
-	favicon = require('serve-favicon'),
 	logger = require('morgan'),
-	cookieParser = require('cookie-parser'),
 	bodyParser = require('body-parser'),
-	stylus = require('stylus');
+	stylus = require('stylus'),
+	request = require('request'),
+	cheerio = require('cheerio'),
+	// 
+
+	index = require('./routes/index'),
+	users = require('./routes/users'),
+	routes = require('./routes/routes'),
+	texts = require('./app/js/data'),
+	// 
+	// 
+	app = express();
 
 
-var index = require('./routes/index');
-var users = require('./routes/users');
-var routes = require('./routes/routes');
-var texts = require('./app/js/data');
 
-var app = express();
+/*
+parse({url: url}, (data) => {
+  console.log(data);
+}, (err) => {
+  console.log(err);
+});
+*/
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set("view engine", "pug");
 
 
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-app.use(logger('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
-	extended: false
-}));
-app.use(cookieParser());
+// app.use(logger('dev'));
+// app.use(bodyParser.json());
+// app.use(bodyParser.urlencoded({
+// extended: false
+// }));
 
 app.use(
 	stylus.middleware({
@@ -45,10 +54,51 @@ app.use(
 app.use(express.static(path.join(__dirname, 'app')));
 
 
-app.use('/', index);
-app.get('/:route', function(req, res, next) {
-	res.render(req.params.route, texts);
+app.get('/favicon.ico', function(req, res) {
+	res.status(204);
 });
+app.use('/', index);
+app.get('/a', function(req, res) {
+	var params = {
+		title: 'Hey',
+		message: 'Hello there!'
+	};
+	res.render('index', {
+		params
+	});
+
+});
+app.get('/:route', function(req, res, next) {
+
+	var
+		requestData = null;
+	// parser
+	const url = 'http://www.addic7ed.com/serie/Eureka/2/1/1';
+	let req__ = request(url, function(error, response, body) {
+
+		console.log('statusCode:', response && response.statusCode);
+		if (!error) {
+			var
+				$page = cheerio.load(body, {
+					normalizeWhitespace: true
+				}),
+				title = $page(".titulo").text().replace(/\s+/g, " ").trim(),
+				requestData = {
+					title: title || 'not loaded'
+				};
+			res.render(req.params.route, {
+				requestData
+			});
+			console.log({
+				requestData
+			});
+		} else {
+			console.log("Произошла ошибка: " + error);
+		}
+	});
+
+});
+
 app.use('/users', users);
 
 // catch 404 and forward to error handler
@@ -57,7 +107,6 @@ app.use(function(req, res, next) {
 	err.status = 404;
 	next(err);
 });
-
 // error handler
 app.use(function(err, req, res, next) {
 	// set locals, only providing error in development
