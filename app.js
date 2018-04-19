@@ -1,7 +1,7 @@
 var
 	express = require('express'),
 	path = require('path'),
-	logger = require('morgan'),
+	// logger = require('morgan'),
 	bodyParser = require('body-parser'),
 	stylus = require('stylus'),
 	request = require('request'),
