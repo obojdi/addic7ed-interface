@@ -57,16 +57,17 @@ app.use(express.static(path.join(__dirname, 'app')));
 app.get('/favicon.ico', function(req, res) {
 	res.status(204);
 });
-app.use('/', index);
-app.get('/a', function(req, res) {
+
+// app.use('/', index);
+// app.use('/users', users);
+
+app.get('/', function(req, res) {
 	var params = {
 		title: 'Hey',
 		message: 'Hello there!'
 	};
-	res.render('index', {
-		params
-	});
-
+	res.render('index', params);
+	next();
 });
 app.get('/:route', function(req, res, next) {
 
@@ -86,25 +87,17 @@ app.get('/:route', function(req, res, next) {
 				}),
 				serverDown = $page.text().match('mysql_pconnect') ? true : false,
 				title,
-				requestData;
+				requestData = {};
+			console.log($page.html())
 			if (serverDown) {
-				requestData = {
-					title: 'addic7ed server down'
-				}
-				console.log($page.html())
+				requestData.title = 'addic7ed server down'
+				// console.log($page.html())
 			} else {
-
-				title = $page(".titulo").text().replace(/\s+/g, " ").trim(),
-					requestData = {
-						title: title || 'not loaded'
-					};
+				title = $page(".titulo").text().replace(/\s+/g, " ").trim();
+				requestData.title = title || 'not loaded';
 			}
-			res.render(req.params.route, {
-				requestData
-			});
-			console.log({
-				requestData
-			});
+			res.render(req.params.route, requestData);
+			console.log(requestData);
 		} else {
 			console.log("Error: " + error);
 		}
@@ -112,7 +105,6 @@ app.get('/:route', function(req, res, next) {
 
 });
 
-app.use('/users', users);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -128,7 +120,7 @@ app.use(function(err, req, res, next) {
 
 	// render the error page
 	res.status(err.status || 500);
-	res.render('error');
+	res.render('error', {message:res.locals.message, error:JSON.stringify(res.locals.error)});
 });
 
 module.exports = app;

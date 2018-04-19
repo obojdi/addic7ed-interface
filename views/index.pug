@@ -1,11 +1,12 @@
 extends layout
 
 block content
-	//- h1= title
-	//- p Welcome to #{message}
-	p Welcome to !{message}
+	if message
+		p Welcome to !{message}
+	if requestData && requestData.message
+		p Welcome to !{requestData.message}
 	ul
-	  li
-		a(href='/') /index
-	  li
-		a(href='/eureka') /eureka
+		li
+			a(href='/') /index
+		li
+			a(href='/eureka') /eureka

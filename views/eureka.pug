@@ -1,5 +1,5 @@
 extends layout
 
 block content
-	h1= requestData.title || 'peqwa'
-	p #{requestData.title}
+	if title
+		h1= title || 'peqwa'
