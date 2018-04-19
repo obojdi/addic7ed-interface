@@ -32,7 +32,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set("view engine", "pug");
 
 
-// app.use(logger('dev'));
+app.use(logger('dev'));
 // app.use(bodyParser.json());
 // app.use(bodyParser.urlencoded({
 // extended: false
@@ -51,8 +51,9 @@ app.use(
 		}
 	})
 )
-app.use(express.static(path.join(__dirname, 'app')));
+// app.use(express.static(path.join(__dirname, 'app')));
 
+app.use('/app',  express.static(__dirname + '/app'));
 
 app.get('/favicon.ico', function(req, res) {
 	res.status(204);
@@ -91,7 +92,7 @@ app.get('/:route', function(req, res, next) {
 				serverDown = $page.text().match('mysql_pconnect') ? true : false,
 				title,
 				requestData = {};
-			console.log($page.html())
+			// console.log($page.html())
 			if (serverDown) {
 				requestData.title = 'addic7ed server down'
 				// console.log($page.html())

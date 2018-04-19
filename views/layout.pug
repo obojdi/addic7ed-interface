@@ -4,11 +4,12 @@ html
 		if title
 			title= title
 		meta(http-equiv='Content-Type', content='text/html; charset=utf-8')
-		link(rel='stylesheet', href='/app/bower/jquery-nice-select/css/style.css')
-		link(rel='stylesheet', href='/css/style.css')
-		//- include scripts
-		script(type='text/javascript', href='/app/bower/jquery/dist/jquery.min.js')
-		script(type='text/javascript', href='/app/bower/jquery-nice-select/js/jquery.nice-select.min.js')
-		//- script(type='text/javascript', href='/js/script.js')
+		link(rel='stylesheet', href='/app/bower/jquery-nice-select/css/nice-select.css')
+		link(rel='stylesheet', href='/app/css/style.css')
+
+		script(type='text/javascript', src='/app/bower/jquery/dist/jquery.min.js')
+		script(type='text/javascript', src='/app/bower/jquery-nice-select/js/jquery.nice-select.min.js')
+		script(type='text/javascript', src='/app/js/script.js')
+
 	body.invoice-box
 		block content

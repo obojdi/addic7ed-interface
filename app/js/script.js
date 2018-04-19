@@ -1,5 +1,3 @@
-var
-	_data = {
-		
-	}
-module.exports = _data;
+$(document).ready(() => {
+	$('.shows').niceSelect();
+});
