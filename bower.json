@@ -1,0 +1,22 @@
+{
+  "name": "addic7ed-interface",
+  "description": "Easier web interface for addic7ed website",
+  "main": "app.js",
+  "authors": [
+    "Obojdi Malenko"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/obojdi/addic7ed-interface",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "app/bower",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery-nice-select": "^1.1.0",
+    "jquery": "^3.3.1"
+  }
+}
