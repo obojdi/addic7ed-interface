@@ -1,5 +1,5 @@
 var
-res__,
+	res__,
 	xhr,
 	select_shows,
 	select_seasons,
@@ -9,7 +9,8 @@ $(document).ready(() => {
 	var
 		$select_shows,
 		$select_seasons,
-		$select_episodes;
+		$select_episodes,
+		$table = $('table.subs');
 
 
 	/**
@@ -34,6 +35,7 @@ $(document).ready(() => {
 			select_episodes.disable();
 			select_episodes.clearOptions();
 			//	clear results
+			$table.html('');
 			select_seasons.load(function(callback) {
 				xhr && xhr.abort();
 				xhr = $.ajax({
@@ -70,6 +72,7 @@ $(document).ready(() => {
 			select_episodes.disable();
 			select_episodes.clearOptions();
 			//	clear results
+			$table.html('');
 			select_episodes.load(function(callback) {
 				xhr && xhr.abort();
 				xhr = $.ajax({
@@ -105,36 +108,41 @@ $(document).ready(() => {
 		onChange: function(value) {
 			if (!value.length) return;
 			//	clear results
-
+			var parts = []
+			parts.push($(".shows option:selected").text().replace(/\s/, '_'))
+			// parts.push(select_shows.getValue());
+			parts.push(select_seasons.getValue());
+			parts.push(select_episodes.getValue().split('x')[1]);
+			// English subs
+			parts.push(1);
+			var suffix = parts.join('/');
+			var url = proxy + 'http://www.addic7ed.com/serie/' + suffix
+			console.log(url)
 			xhr && xhr.abort();
 			xhr = $.ajax({
-				url: proxy + 'http://www.addic7ed.com/serie/Eureka/2/1/1',
+				url: url,
 				data: {
 					//	pass select_shows value
 					// showID: select_shows.getValue(),
 					// season: value
 				},
 				success: function(results) {
-					$table = $('table.subs');
 					$table.html('')
-					console.log(results)
 					res__ = $(results);
 					$(results).find('#container95m table .tabel95').each(function(i, el) {
 						var
 							$tr = $('<tr/>'),
 							version = $(el).find('td.NewsTitle').text(),
-							$version = $('<td/>').text(version),
-							lang = $(el).find('td.language').text(),
-							$lang = $('<td/>').text(lang),
+							$version = $('<td/>'),
+							base = 'http://www.addic7ed.com/',
 							link = $(el).find('a.buttonDownload').attr('href'),
-							$link = $('<td/>').text(link);
+							$link = $('<a/>').attr('href', base + link).attr('target', '_blank').text(version);
+						$link.appendTo($version);
+						// lang = $(el).find('td.language').text(),
+						// $lang = $('<td/>').text(lang);
+						// $lang.appendTo($tr)
 						$version.appendTo($tr)
-						$lang.appendTo($tr)
-						$link.appendTo($tr)
 						$tr.appendTo($table);
-						console.log($tr)
-						// return true;
-
 					});
 				},
 				error: function() {

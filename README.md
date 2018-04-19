@@ -1,4 +1,4 @@
-addic7ed.com UI redesign
+addic7ed.com UI redesign. Now working after login (session cookie)
 
 some legacy code will be purged later
 
@@ -15,6 +15,7 @@ npm start
 1. use this project as a base to learn react/vue OR improve angular skills
 1. turn seasons select into radio buttons
 1. add support for login, language select, HI and stats
+1. add url routing
 
 ### Notes
 
