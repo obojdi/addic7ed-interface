@@ -6,7 +6,7 @@ block content
 	- var base = 'http://www.addic7ed.com/'
 	if title
 		h1= title || 'peqwa'
-		
+
 	h2 show
 	select.shows
 		for show in shows
@@ -22,7 +22,7 @@ block content
 		for ep in episodes
 			option(value=ep.id)= ep.name
 	h2 single episode subs
-	table
+	table.subs
 		for sub in episode_subtitles
 			tr
 				td

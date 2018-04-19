@@ -91,8 +91,8 @@ app.get('/:route', function(req, res, next) {
 		ajaxEpisodes: 'http://www.addic7ed.com/ajax_getEpisodes.php?showID=94&&season=2'
 	}
 	var options = {
-		url: urls.sample,
-		// url:urls.ajaxShows,
+		// url: urls.sample,
+		url:urls.ajaxShows,
 		// url:urls.ajaxSeasons,
 		// url:urls.ajaxEpisodes,
 		headers: {

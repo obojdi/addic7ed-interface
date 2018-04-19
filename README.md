@@ -13,6 +13,8 @@ npm start
 1. add shows hierarchy
 1. choose some css ui framework
 1. use this project as a base to learn react/vue OR improve angular skills
+1. turn seasons select into radio buttons
+1. add support for login, language select, HI and stats
 
 ### Notes
 
