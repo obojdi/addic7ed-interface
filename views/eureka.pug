@@ -1,8 +1,30 @@
 extends layout
 
 block content
+	- var seasons = [{id:0, name:"select me"}];
+	- var episodes = [{id:0, name:"select me"}];
+	- var base = 'http://www.addic7ed.com/'
 	if title
 		h1= title || 'peqwa'
+	h2 show
 	select.shows
+		option
 		for show in shows
 			option(value=show.id)= show.name
+	h2 season
+	select.episodes
+		option
+		for s in seasons
+			option(value=s.id)= s.name
+	h2 episode
+	select.episodes
+		option
+		for ep in episodes
+			option(value=ep.id)= ep.name
+	h2 single episode subs
+	table
+		for sub in episode_subtitles
+			tr
+				td
+					a(href=base + sub.link, target='_blank')= sub.version
+				td= sub.lang
