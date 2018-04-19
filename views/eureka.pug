@@ -3,3 +3,6 @@ extends layout
 block content
 	if title
 		h1= title || 'peqwa'
+	select.shows
+		for show in shows
+			option(value=show.id)= show.name

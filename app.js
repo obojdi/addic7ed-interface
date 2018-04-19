@@ -75,9 +75,12 @@ app.get('/:route', function(req, res, next) {
 		requestData = null;
 	// parser
 	const url = 'http://www.addic7ed.com/serie/Eureka/2/1/1';
-	const ajaxUrl = 'http://www.addic7ed.com/ajax_getSeasons.php?showID=94';
+	// const ajaxUrl = 'http://www.addic7ed.com/ajax_getSeasons.php?showID=94';
+	// const ajaxUrl = 'http://www.addic7ed.com/ajax_getEpisodes.php?showID=94&&season=2';
+	const ajaxUrl = 'http://www.addic7ed.com/ajax_getShows.php';
 
-	let req__ = request(url, function(error, response, body) {
+	// let req__ = request(url, function(error, response, body) {
+	let req__ = request(ajaxUrl, function(error, response, body) {
 
 		console.log('statusCode:', response && response.statusCode);
 		if (!error) {
@@ -93,11 +96,22 @@ app.get('/:route', function(req, res, next) {
 				requestData.title = 'addic7ed server down'
 				// console.log($page.html())
 			} else {
-				title = $page(".titulo").text().replace(/\s+/g, " ").trim();
-				requestData.title = title || 'not loaded';
+				requestData.title = $page(".titulo").text().replace(/\s+/g, " ").trim()|| 'not loaded';;
+				requestData.shows = $page('#qsShow option').map(function (i,el){
+					return {
+						id: $page(el).val(),
+						name: $page(el).text()
+					}
+				});
+/*
+				.map(a => {
+					id: a.val(),
+					'name': a.text()
+				})
+*/
 			}
 			res.render(req.params.route, requestData);
-			console.log(requestData);
+			// console.log(requestData.shows);
 		} else {
 			console.log("Error: " + error);
 		}
@@ -120,7 +134,10 @@ app.use(function(err, req, res, next) {
 
 	// render the error page
 	res.status(err.status || 500);
-	res.render('error', {message:res.locals.message, error:JSON.stringify(res.locals.error)});
+	res.render('error', {
+		message: res.locals.message,
+		error: JSON.stringify(res.locals.error)
+	});
 });
 
 module.exports = app;
