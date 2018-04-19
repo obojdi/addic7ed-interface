@@ -1,3 +1,3 @@
 $(document).ready(() => {
-	$('.shows').niceSelect();
+	$('.shows').selectize();
 });
