@@ -13,3 +13,7 @@ npm start
 1. add shows hierarchy
 1. choose some css ui framework
 1. use this project as a base to learn react/vue OR improve angular skills
+
+### Notes
+
+* download from direct link fails if not logged in ==> store session cookie

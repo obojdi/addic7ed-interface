@@ -6,6 +6,8 @@
     "start": "nodemon ./bin/www"
   },
   "dependencies": {
+    "ad7": "^0.2.0",
+    "addic7ed-api": "^1.5.1",
     "body-parser": "~1.15.2",
     "express": "latest",
     "moment": "^2.20.1",

@@ -1,18 +1,18 @@
 extends layout
 
 block content
-	- var seasons = [{id:0, name:"select me"}];
-	- var episodes = [{id:0, name:"select me"}];
+	// - var seasons = seasons ? seasons : [{id:0, name:"select me"}];
+	// - var episodes = episodes ? episodes : [{id:0, name:"select me"}];
 	- var base = 'http://www.addic7ed.com/'
 	if title
 		h1= title || 'peqwa'
+		
 	h2 show
 	select.shows
-		option
 		for show in shows
 			option(value=show.id)= show.name
 	h2 season
-	select.episodes
+	select.seasons
 		option
 		for s in seasons
 			option(value=s.id)= s.name

@@ -32,7 +32,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set("view engine", "pug");
 
 
-app.use(logger('dev'));
+// app.use(logger('dev'));
 // app.use(bodyParser.json());
 // app.use(bodyParser.urlencoded({
 // extended: false
@@ -61,7 +61,16 @@ app.get('/favicon.ico', function(req, res) {
 
 // app.use('/', index);
 // app.use('/users', users);
-
+var addic7edApi = require('addic7ed-api');
+addic7edApi.search('Eureka', 2, 1).then(function(subtitlesList) {
+	var subInfo = subtitlesList[0];
+	if (subInfo) {
+		console.log(subInfo)
+		// addic7edApi.download(subInfo, './South.Park.S19E06.srt').then(function() {
+		// console.log('Subtitles file saved.');
+		// });
+	}
+});
 app.get('/', function(req, res) {
 	var params = {
 		title: 'Hey',
@@ -75,14 +84,23 @@ app.get('/:route', function(req, res, next) {
 	var
 		requestData = {};
 	// parser
-	const url = 'http://www.addic7ed.com/serie/Eureka/2/1/1';
-	const ajaxShows = 'http://www.addic7ed.com/ajax_getShows.php';
-	const ajaxSeasons = 'http://www.addic7ed.com/ajax_getSeasons.php?showID=94';
-	const ajaxEpisodes = 'http://www.addic7ed.com/ajax_getEpisodes.php?showID=94&&season=2';
+	const urls = {
+		sample: 'http://www.addic7ed.com/serie/Eureka/2/1/1',
+		ajaxShows: 'http://www.addic7ed.com/ajax_getShows.php',
+		ajaxSeasons: 'http://www.addic7ed.com/ajax_getSeasons.php?showID=94',
+		ajaxEpisodes: 'http://www.addic7ed.com/ajax_getEpisodes.php?showID=94&&season=2'
+	}
+	var options = {
+		url: urls.sample,
+		// url:urls.ajaxShows,
+		// url:urls.ajaxSeasons,
+		// url:urls.ajaxEpisodes,
+		headers: {
+			'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'
+		}
+	};
 
-	let req__ = request(url, function(error, response, body) {
-
-		console.log('statusCode:', response && response.statusCode);
+	let req__ = request(options, function(error, response, body) {
 		if (!error) {
 			var
 				$ = cheerio.load(body, {
@@ -90,7 +108,6 @@ app.get('/:route', function(req, res, next) {
 				}),
 				serverDown = $.text().match('mysql_pconnect') ? true : false,
 				title;
-			// console.log($.html())
 			if (serverDown) {
 				requestData.title = 'addic7ed server down'
 				// console.log($.html())
@@ -102,13 +119,13 @@ app.get('/:route', function(req, res, next) {
 						name: $(el).text()
 					}
 				});
-				requestData.seasons = $('#qsShow option').map(function(i, el) {
+				requestData.seasons = $('#qsiSeason option').map(function(i, el) {
 					return {
 						id: $(el).val(),
 						name: $(el).text()
 					}
 				});
-				requestData.episodes = $('#qsShow option').map(function(i, el) {
+				requestData.episodes = $('#qsiEp option').map(function(i, el) {
 					return {
 						id: $(el).val(),
 						name: $(el).text()
@@ -132,7 +149,6 @@ app.get('/:route', function(req, res, next) {
 
 			});
 			res.render(req.params.route, requestData);
-			// console.log(requestData.shows);
 		} else {
 			console.log("Error: " + error);
 		}
