@@ -74,6 +74,8 @@ app.get('/:route', function(req, res, next) {
 		requestData = null;
 	// parser
 	const url = 'http://www.addic7ed.com/serie/Eureka/2/1/1';
+	const ajaxUrl = 'http://www.addic7ed.com/ajax_getSeasons.php?showID=94';
+
 	let req__ = request(url, function(error, response, body) {
 
 		console.log('statusCode:', response && response.statusCode);
@@ -82,10 +84,21 @@ app.get('/:route', function(req, res, next) {
 				$page = cheerio.load(body, {
 					normalizeWhitespace: true
 				}),
-				title = $page(".titulo").text().replace(/\s+/g, " ").trim(),
+				serverDown = $page.text().match('mysql_pconnect') ? true : false,
+				title,
+				requestData;
+			if (serverDown) {
 				requestData = {
-					title: title || 'not loaded'
-				};
+					title: 'addic7ed server down'
+				}
+				console.log($page.html())
+			} else {
+
+				title = $page(".titulo").text().replace(/\s+/g, " ").trim(),
+					requestData = {
+						title: title || 'not loaded'
+					};
+			}
 			res.render(req.params.route, {
 				requestData
 			});
@@ -93,7 +106,7 @@ app.get('/:route', function(req, res, next) {
 				requestData
 			});
 		} else {
-			console.log("Произошла ошибка: " + error);
+			console.log("Error: " + error);
 		}
 	});
 
