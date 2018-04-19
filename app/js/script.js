@@ -52,6 +52,7 @@ $(document).ready(() => {
 							}
 							return obj;
 						});
+						$('h1').text($(".shows option:selected").text());
 						callback(selector);
 					},
 					error: function() {
@@ -134,7 +135,7 @@ $(document).ready(() => {
 							$tr = $('<tr/>'),
 							version = $(el).find('td.NewsTitle').text(),
 							$version = $('<td/>'),
-							base = 'http://www.addic7ed.com/',
+							base = 'http://www.addic7ed.com',
 							link = $(el).find('a.buttonDownload').attr('href'),
 							$link = $('<a/>').attr('href', base + link).attr('target', '_blank').text(version);
 						$link.appendTo($version);
