@@ -6,6 +6,7 @@ var
 	stylus = require('stylus'),
 	request = require('request'),
 	cheerio = require('cheerio'),
+	moment = require('moment'),
 	// 
 
 	index = require('./routes/index'),
@@ -16,7 +17,18 @@ var
 	// 
 	app = express();
 
+const urls = {
+	sample: 'http://www.addic7ed.com/serie/Eureka/2/1/1',
+	ajaxShows: 'http://www.addic7ed.com/ajax_getShows.php',
+	ajaxSeasons: 'http://www.addic7ed.com/ajax_getSeasons.php?showID=94',
+	ajaxEpisodes: 'http://www.addic7ed.com/ajax_getEpisodes.php?showID=94&&season=2',
+	ajaxFull: 'http://www.addic7ed.com/ajax_loadShow.php?show=94&season=2'
+}
 
+if (typeof localStorage === "undefined" || localStorage === null) {
+	var LocalStorage = require('node-localstorage').LocalStorage;
+	localStorage = new LocalStorage('./localStorage');
+}
 
 /*
 parse({url: url}, (data) => {
@@ -59,6 +71,8 @@ app.get('/favicon.ico', function(req, res) {
 	res.status(204);
 });
 
+console.log(localStorage.getItem('shows'));
+
 // app.use('/', index);
 // app.use('/users', users);
 var addic7edApi = require('addic7ed-api');
@@ -89,23 +103,19 @@ app.get('/', function(req, res) {
 });
 app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 	var
+		headers = {
+			'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'
+		},
 		params = req.params || {},
 		requestData = {};
 	// parser
-	const urls = {
-		sample: 'http://www.addic7ed.com/serie/Eureka/2/1/1',
-		ajaxShows: 'http://www.addic7ed.com/ajax_getShows.php',
-		ajaxSeasons: 'http://www.addic7ed.com/ajax_getSeasons.php?showID=94',
-		ajaxEpisodes: 'http://www.addic7ed.com/ajax_getEpisodes.php?showID=94&&season=2'
-	}
+
 	var options = {
 		// url: urls.sample,
 		url: urls.ajaxShows,
 		// url:urls.ajaxSeasons,
 		// url:urls.ajaxEpisodes,
-		headers: {
-			'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'
-		}
+		headers: headers
 	};
 	if (params.show) {
 		console.log('show: ' + params.show)
@@ -123,6 +133,56 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 			}
 		}
 	}
+	console.log(' ');
+	// check if local storage item exists
+	if (typeof localStorage.getItem('shows') !== 'string') {
+		// no shows item in LS, set LS shows and cache var anew
+		var cache = {
+			shows: {
+				timestamp: moment(),
+				items: {}
+			}
+		};
+		localStorage.setItem('shows', JSON.stringify(cache.shows));
+	} else {
+		// LS shows exist, pull shows from LS to cache var
+		var cache = {
+			shows: {
+				timestamp: moment(JSON.parse(localStorage.getItem('shows')).timestamp).format(),
+				items: JSON.parse(localStorage.getItem('shows')).items
+			}
+		};
+	}
+	// cache shows 
+	if (moment().subtract(1, 'minutes').isAfter(cache.shows.timestamp)) {
+		// timestamp exceeded, sending request
+		var opts = {
+			url: urls.ajaxShows,
+			headers: headers
+		};
+		let request_shows = request(opts, (err, resp, body) => {
+			if (!err) {
+
+				// store new shows data in local storage/redis
+				localStorage.setItem('shows', JSON.stringify({
+					timestamp: moment(),
+					//	put request parse results to items
+					items: {}
+					// body.parse().map(a => {
+					// {
+					// id: id,
+					// name: name
+					// }
+					// })
+				}));
+			} else {
+				console.log("Error: " + error);
+			}
+		})
+	} else {
+		// timestamp not exceeded, keep cache
+
+	}
 	let req__ = request(options, function(error, response, body) {
 		if (!error) {
 			var
@@ -135,7 +195,7 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 				requestData.title = 'addic7ed server down'
 				// console.log($.html())
 			} else {
-				// requestData.title = $(".titulo").text().replace(/\s+/g, " ").trim() || 'title not loaded';;
+
 				requestData.shows = $('#qsShow option').map(function(i, el) {
 					return {
 						id: parseInt($(el).val()),
@@ -163,7 +223,6 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 			}
 			// $('table.tabel95').filter((i,el)=>{return $(el).children() })
 			requestData.episode_subtitles = $('#container95m table .tabel95').map((i, el) => {
-
 				return {
 					version: $(el).find('td.NewsTitle').text(),
 					lang: $(el).find('td.language').text(),
@@ -173,8 +232,7 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 			});
 			requestData.params = params;
 
-
-			requestData.title = requestData.shows.filter((s) => s.id == params.show).pop().name|| 'title not loaded'
+			requestData.title = requestData.shows.filter((s) => s.id == params.show).pop().name || 'title not loaded'
 
 			// res.render(req.params.show, requestData);
 			res.render('eureka', requestData);

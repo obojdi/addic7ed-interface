@@ -158,4 +158,9 @@ $(document).ready(() => {
 	select_seasons = $select_seasons[0].selectize;
 	select_episodes = $select_episodes[0].selectize;
 
+	// local storage
+	localStorage.setItem('peqwa', JSON.stringify({
+		a: 'test'
+	}));
+
 });
