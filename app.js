@@ -6,6 +6,7 @@
 var
 	express = require('express'),
 	path = require('path'),
+ favicon = require('serve-favicon'),
 	// logger = require('morgan'),
 	bodyParser = require('body-parser'),
 	stylus = require('stylus'),
@@ -54,6 +55,7 @@ app.set("view engine", "pug");
 // app.use(bodyParser.urlencoded({
 // extended: false
 // }));
+app.use(favicon(path.join(__dirname, 'camera.svg')));
 
 app.use(
 	stylus.middleware({
@@ -72,7 +74,7 @@ app.use(
 
 app.use('/app', express.static(__dirname + '/app'));
 
-app.get('/favicon.ico', function(req, res) {
+app.get('/camera.svg', function(req, res) {
 	res.status(204);
 });
 
@@ -146,8 +148,11 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 		// no shows item in LS, set LS shows and cache var anew
 		var cache = {
 			shows: {
-				timestamp: moment(),
-				items: {}
+				// !
+				timestamp: moment().subtract(7,'days').format(),
+				// items: {}
+				items: []
+				// items: [{id:null,name:null}]
 			}
 		};
 		localStorage.setItem('shows', JSON.stringify(cache.shows));
@@ -216,7 +221,7 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 				// console.log($.html())
 			} else {
 
-				requestData.shows = JSON.parse(localStorage.getItem('shows')).items;
+				requestData.shows = JSON.parse(localStorage.getItem('shows')).items || [];
 
 				requestData.seasons = $('#qsiSeason option').map(function(i, el) {
 					return {
@@ -248,7 +253,8 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 			});
 			requestData.params = params;
 
-			requestData.title = requestData.shows.filter((s) => s.id == params.show).pop().name || 'title not loaded'
+			// .pop().name || 'title not loaded'
+			requestData.title = requestData.shows.slice().filter((s) => s.id == params.show).pop().name || 'title not loaded'
 
 			// res.render(req.params.show, requestData);
 			res.render('eureka', requestData);
