@@ -71,8 +71,6 @@ app.get('/favicon.ico', function(req, res) {
 	res.status(204);
 });
 
-console.log(localStorage.getItem('shows'));
-
 // app.use('/', index);
 // app.use('/users', users);
 var addic7edApi = require('addic7ed-api');
@@ -120,13 +118,17 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 	if (params.show) {
 		console.log('show: ' + params.show)
 		options.url = urls.ajaxShows
+		// call season list
 		if (params.season) {
 			options.url = urls.ajaxSeasons;
+			// call episode list
 			console.log('season: ' + params.season)
 			if (params.episode) {
 				options.url = urls.ajaxEpisodes;
+				// call subtitle file list, all languages
 				console.log('episode: ' + params.episode)
 				if (params.language) {
+					// call subtitle file list, selected language
 					console.log('language: ' + params.language)
 
 				}
@@ -162,18 +164,30 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 		};
 		let request_shows = request(opts, (err, resp, body) => {
 			if (!err) {
-
+				// parse request results
+				var
+					$ = cheerio.load(body, {
+						normalizeWhitespace: true
+					}),
+					serverDown = $.text().match('mysql_pconnect') ? true : false,
+					title;
+				if (serverDown) {
+					// throw error
+					var err_text = 'addic7ed server down'
+				} else {
+					// TODO: call .get() on cheerio collection, not after mapping
+					var items = $('#qsShow option').map(function(i, el) {
+						return {
+							id: parseInt($(el).val()),
+							name: $(el).text()
+						}
+					}).get();
+				}
 				// store new shows data in local storage/redis
 				localStorage.setItem('shows', JSON.stringify({
 					timestamp: moment(),
 					//	put request parse results to items
-					items: {}
-					// body.parse().map(a => {
-					// {
-					// id: id,
-					// name: name
-					// }
-					// })
+					items: items
 				}));
 			} else {
 				console.log("Error: " + error);
@@ -184,6 +198,7 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 
 	}
 	let req__ = request(options, function(error, response, body) {
+		console.log(options)
 		if (!error) {
 			var
 				$ = cheerio.load(body, {
@@ -196,12 +211,8 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 				// console.log($.html())
 			} else {
 
-				requestData.shows = $('#qsShow option').map(function(i, el) {
-					return {
-						id: parseInt($(el).val()),
-						name: $(el).text()
-					}
-				}).get();
+				requestData.shows = JSON.parse(localStorage.getItem('shows')).items;
+
 				requestData.seasons = $('#qsiSeason option').map(function(i, el) {
 					return {
 						id: parseInt($(el).val()),
