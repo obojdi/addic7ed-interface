@@ -116,21 +116,21 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 		headers: headers
 	};
 	if (params.show) {
-		console.log('show: ' + params.show)
+		// console.log('show: ' + params.show)
 		options.url = urls.ajaxShows
 		// call season list
 		if (params.season) {
+			// TODO: add GET params to request
 			options.url = urls.ajaxSeasons;
 			// call episode list
-			console.log('season: ' + params.season)
+			// console.log('season: ' + params.season)
 			if (params.episode) {
 				options.url = urls.ajaxEpisodes;
 				// call subtitle file list, all languages
-				console.log('episode: ' + params.episode)
+				// console.log('episode: ' + params.episode)
 				if (params.language) {
 					// call subtitle file list, selected language
-					console.log('language: ' + params.language)
-
+					// console.log('language: ' + params.language)
 				}
 			}
 		}
@@ -189,16 +189,16 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 					//	put request parse results to items
 					items: items
 				}));
+				console.log("Sent request to update shows cache");
 			} else {
 				console.log("Error: " + error);
 			}
 		})
 	} else {
 		// timestamp not exceeded, keep cache
-
+		console.log("Got shows from cache");
 	}
 	let req__ = request(options, function(error, response, body) {
-		console.log(options)
 		if (!error) {
 			var
 				$ = cheerio.load(body, {
