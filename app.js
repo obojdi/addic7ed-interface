@@ -1,3 +1,8 @@
+// ideas used:
+// https://github.com/Inrego/addic2subs/blob/master/SubsDownloader/Websites/Addic7ed/Plugin.cs
+// npm ad7
+// npm adddic7ed-api
+
 var
 	express = require('express'),
 	path = require('path'),
