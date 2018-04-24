@@ -6,7 +6,7 @@
 var
 	express = require('express'),
 	path = require('path'),
- favicon = require('serve-favicon'),
+	favicon = require('serve-favicon'),
 	// logger = require('morgan'),
 	bodyParser = require('body-parser'),
 	stylus = require('stylus'),
@@ -55,7 +55,7 @@ app.set("view engine", "pug");
 // app.use(bodyParser.urlencoded({
 // extended: false
 // }));
-app.use(favicon(path.join(__dirname, 'camera.svg')));
+app.use(favicon(path.join(__dirname, 'favicon.ico')));
 
 app.use(
 	stylus.middleware({
@@ -112,36 +112,11 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 			'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'
 		},
 		params = req.params || {},
-		requestData = {};
-	// parser
+		requestData = {},
+		options = {
+			headers: headers
+		};
 
-	var options = {
-		// url: urls.sample,
-		url: urls.ajaxShows,
-		// url:urls.ajaxSeasons,
-		// url:urls.ajaxEpisodes,
-		headers: headers
-	};
-	if (params.show) {
-		// console.log('show: ' + params.show)
-		options.url = urls.ajaxShows
-		// call season list
-		if (params.season) {
-			// TODO: add GET params to request
-			options.url = urls.ajaxSeasons;
-			// call episode list
-			// console.log('season: ' + params.season)
-			if (params.episode) {
-				options.url = urls.ajaxEpisodes;
-				// call subtitle file list, all languages
-				// console.log('episode: ' + params.episode)
-				if (params.language) {
-					// call subtitle file list, selected language
-					// console.log('language: ' + params.language)
-				}
-			}
-		}
-	}
 	console.log(' ');
 	// check if local storage item exists
 	if (typeof localStorage.getItem('shows') !== 'string') {
@@ -149,7 +124,7 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 		var cache = {
 			shows: {
 				// !
-				timestamp: moment().subtract(7,'days').format(),
+				timestamp: moment().subtract(7, 'days').format(),
 				// items: {}
 				items: []
 				// items: [{id:null,name:null}]
@@ -206,7 +181,29 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 		})
 	} else {
 		// timestamp not exceeded, keep cache
-		console.log("Got shows from cache");
+		console.log("pulled shows from cache");
+	}
+
+
+	if (params.show) {
+		// console.log('show: ' + params.show)
+		options.url = urls.ajaxShows
+		// call season list
+	}
+	if (params.season) {
+		// TODO: add GET params to request
+		options.url = urls.ajaxSeasons;
+		// call episode list
+		// console.log('season: ' + params.season)
+	}
+	if (params.episode) {
+		options.url = urls.ajaxEpisodes;
+		// call subtitle file list, all languages
+		// console.log('episode: ' + params.episode)
+	}
+	if (params.language) {
+		// call subtitle file list, selected language
+		// console.log('language: ' + params.language)
 	}
 	let req__ = request(options, function(error, response, body) {
 		if (!error) {
