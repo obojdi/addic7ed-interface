@@ -4,13 +4,12 @@ block content
 	// - var seasons = seasons ? seasons : [{id:0, name:"select me"}];
 	// - var episodes = episodes ? episodes : [{id:0, name:"select me"}];
 	- var base = 'http://www.addic7ed.com/'
+	
 	if title
 		h1= title || 'peqwa'
-
-	h2 show
 	select.shows
 		for show in shows
-			option(value=show.id)= show.name
+			option(value=show.id, selected=(show.id==params.show?'selected':false))= show.name
 	h2 season
 	select.seasons
 		option

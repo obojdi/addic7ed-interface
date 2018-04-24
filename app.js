@@ -87,9 +87,9 @@ app.get('/', function(req, res) {
 	res.render('index', params);
 	next();
 });
-app.get('/:route', function(req, res, next) {
-console.log(req.params.route)
+app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 	var
+		params = req.params || {},
 		requestData = {};
 	// parser
 	const urls = {
@@ -100,14 +100,29 @@ console.log(req.params.route)
 	}
 	var options = {
 		// url: urls.sample,
-		url:urls.ajaxShows,
+		url: urls.ajaxShows,
 		// url:urls.ajaxSeasons,
 		// url:urls.ajaxEpisodes,
 		headers: {
 			'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'
 		}
 	};
+	if (params.show) {
+		console.log('show: ' + params.show)
+		options.url = urls.ajaxShows
+		if (params.season) {
+			options.url = urls.ajaxSeasons;
+			console.log('season: ' + params.season)
+			if (params.episode) {
+				options.url = urls.ajaxEpisodes;
+				console.log('episode: ' + params.episode)
+				if (params.language) {
+					console.log('language: ' + params.language)
 
+				}
+			}
+		}
+	}
 	let req__ = request(options, function(error, response, body) {
 		if (!error) {
 			var
@@ -121,25 +136,24 @@ console.log(req.params.route)
 				// console.log($.html())
 			} else {
 				// requestData.title = $(".titulo").text().replace(/\s+/g, " ").trim() || 'title not loaded';;
-				requestData.title = req.params.route || 'title not loaded';;
 				requestData.shows = $('#qsShow option').map(function(i, el) {
 					return {
-						id: $(el).val(),
+						id: parseInt($(el).val()),
 						name: $(el).text()
 					}
-				});
+				}).get();
 				requestData.seasons = $('#qsiSeason option').map(function(i, el) {
 					return {
-						id: $(el).val(),
+						id: parseInt($(el).val()),
 						name: $(el).text()
 					}
-				});
+				}).get();
 				requestData.episodes = $('#qsiEp option').map(function(i, el) {
 					return {
-						id: $(el).val(),
+						id: parseInt($(el).val()),
 						name: $(el).text()
 					}
-				});
+				}).get();
 				/*
 								.map(a => {
 									id: a.val(),
@@ -157,7 +171,13 @@ console.log(req.params.route)
 				};
 
 			});
-			res.render(req.params.route, requestData);
+			requestData.params = params;
+
+
+			requestData.title = requestData.shows.filter((s) => s.id == params.show).pop().name|| 'title not loaded'
+
+			// res.render(req.params.show, requestData);
+			res.render('eureka', requestData);
 		} else {
 			console.log("Error: " + error);
 		}
