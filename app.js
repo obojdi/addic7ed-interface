@@ -65,12 +65,20 @@ var addic7edApi = require('addic7ed-api');
 addic7edApi.search('Eureka', 2, 1).then(function(subtitlesList) {
 	var subInfo = subtitlesList[0];
 	if (subInfo) {
-		console.log(subInfo)
+		// console.log('addic7edApi.search:')
+		// console.log(subInfo)
 		// addic7edApi.download(subInfo, './South.Park.S19E06.srt').then(function() {
 		// console.log('Subtitles file saved.');
 		// });
 	}
 });
+/**
+/* if no route specified then load all shows
+/* else try to parse url and check result for showID
+/*             responseText = responseText.replace(/<img/gi, '<noload');
+/* (<(\b(img|style|script|head|link)\b)(([^>]*\/>)|([^\7]*(<\/\2[^>]*>)))|(<\bimg\b)[^>]*>|(\b(background|style)\b=\s*"[^"]*"))
+
+*/
 app.get('/', function(req, res) {
 	var params = {
 		title: 'Hey',
@@ -80,7 +88,7 @@ app.get('/', function(req, res) {
 	next();
 });
 app.get('/:route', function(req, res, next) {
-
+console.log(req.params.route)
 	var
 		requestData = {};
 	// parser
@@ -112,7 +120,8 @@ app.get('/:route', function(req, res, next) {
 				requestData.title = 'addic7ed server down'
 				// console.log($.html())
 			} else {
-				requestData.title = $(".titulo").text().replace(/\s+/g, " ").trim() || 'title not loaded';;
+				// requestData.title = $(".titulo").text().replace(/\s+/g, " ").trim() || 'title not loaded';;
+				requestData.title = req.params.route || 'title not loaded';;
 				requestData.shows = $('#qsShow option').map(function(i, el) {
 					return {
 						id: $(el).val(),
