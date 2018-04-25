@@ -23,7 +23,11 @@ var
 	texts = require('./app/js/data'),
 	// 
 	// 
-	app = express();
+	app = express(),
+
+	headers = {
+		'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'
+	};
 
 const urls = {
 	sample: 'http://www.addic7ed.com/serie/Eureka/2/1/1',
@@ -82,6 +86,8 @@ app.get('/favicon.ico', function(req, res) {
 
 // app.use('/', index);
 // app.use('/users', users);
+
+/*
 var addic7edApi = require('addic7ed-api');
 addic7edApi.search('Eureka', 2, 1).then(function(subtitlesList) {
 	var subInfo = subtitlesList[0];
@@ -93,6 +99,8 @@ addic7edApi.search('Eureka', 2, 1).then(function(subtitlesList) {
 		// });
 	}
 });
+*/
+
 /**
 /* if no route specified then load all shows
 /* else try to parse url and check result for showID
@@ -108,11 +116,105 @@ app.get('/', function(req, res) {
 	res.render('index', params);
 	next();
 });
+
+var deferred = Q.defer();
+deferred.promise.then(function(obj) {
+	console.log(obj);
+});
+deferred.resolve("Hello World");
+
+
+let requestData = {};
+let options = {
+	shows: {
+		headers: headers,
+		url: urls.ajaxSeasons,
+		qs: {
+			showID: 94
+		}
+	},
+	seasons: {
+		headers: headers,
+		url: urls.ajaxEpisodes,
+		qs: {
+			showID: 94,
+			season: 2
+		}
+	}
+}
+
+
+let request_shows = (opts) => {
+	return new Promise((resolve) => {
+		request(opts, function(error, response, body) {
+			var
+				html = body.replace(/<img\b[^>]*>/ig, ''),
+				$ = cheerio.load(html, {
+					normalizeWhitespace: true
+				});
+			requestData.seasons = $('#qsiSeason option').map(function(i, el) {
+				return {
+					id: parseInt($(el).val()),
+					name: $(el).text()
+				}
+			}).get();
+		});
+		resolve(opts);
+	});
+}
+
+let request_seasons = (opts) => {
+	return new Promise((resolve) => {
+		request(opts, function(error, response, body) {
+			var
+				html = body.replace(/<img\b[^>]*>/ig, ''),
+				$ = cheerio.load(html, {
+					normalizeWhitespace: true
+				});
+			requestData.episodes = $('#qsiEp option').map(function(i, el) {
+				return {
+					id: $(el).val().split('x')[1],
+					name: $(el).text()
+				}
+			}).get();
+		});
+		resolve(opts);
+	});
+}
+
+
+app.get('/test', function(req, res, next) {
+	let send_requests = () => {
+		let i;
+		let promises = [];
+		requestData.params = {
+			show: 94,
+			season: 2,
+			episode: 3
+		}
+
+		// let rq = Q.when(request_shows).then(results => console.log(results.resolve));
+
+		promises.push(request_shows(options.shows), request_seasons(options.seasons));
+		Promise.all(promises)
+			.then((results) => {
+				console.log(" ");
+				console.log("All done");
+				console.log(requestData);
+				res.render('subtitles', requestData);
+
+				// render view
+			})
+			.catch((e) => {
+				// Handle errors here
+			});
+	}
+	send_requests();
+
+});
+
 app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 	var
-		headers = {
-			'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'
-		},
 		params = req.params || {},
 		requestData = {},
 		options = {
@@ -201,6 +303,9 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 		options.qs = {
 			showID: params.show
 		}
+
+		// let rq = Q.when(request("https://github.com/kriskowal/q"));
+
 		// console.log('season: ' + params.season)
 		request(options, function(error, response, body) {
 			if (!error) {
@@ -306,6 +411,7 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 		// call subtitle file list, selected language
 		// console.log('language: ' + params.language)
 	}
+
 	requestData.params = params;
 	// TODO:
 	// rewrite to promises
