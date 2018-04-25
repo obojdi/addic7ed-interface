@@ -152,7 +152,9 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 			if (!err) {
 				// parse request results
 				var
-					$ = cheerio.load(body, {
+					html = body.replace(/<img\b[^>]*>/ig, ''),
+					$ = cheerio.load(html, {
+
 						normalizeWhitespace: true
 					}),
 					serverDown = $.text().match('mysql_pconnect') ? true : false,
@@ -201,7 +203,8 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 		request(options, function(error, response, body) {
 			if (!error) {
 				var
-					$ = cheerio.load(body, {
+					html = body.replace(/<img\b[^>]*>/ig, ''),
+					$ = cheerio.load(html, {
 						normalizeWhitespace: true
 					});
 				console.log("season request sent");
@@ -229,7 +232,8 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 		request(options, function(error, response, body) {
 			if (!error) {
 				var
-					$ = cheerio.load(body, {
+					html = body.replace(/<img\b[^>]*>/ig, ''),
+					$ = cheerio.load(html, {
 						normalizeWhitespace: true
 					});
 				console.log("episode request sent");
@@ -255,7 +259,8 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 		request(options, function(error, response, body) {
 			if (!error) {
 				var
-					$ = cheerio.load(body, {
+					html = body.replace(/<img\b[^>]*>/ig, ''),
+					$ = cheerio.load(html, {
 						normalizeWhitespace: true
 					}),
 					rows = $('#season tr.epeven').filter((b, a) => parseInt($(a).find('td').eq(1).text()) == params.episode);
@@ -269,7 +274,7 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 						checkbox: $(el).find('input').html()
 					};
 
-				}).get().sort((a,b)=>{
+				}).get().sort((a, b) => {
 					var _lang = a.lang.localeCompare(b.lang);
 					var _version = a.version.localeCompare(b.version);
 					return _lang || _version;

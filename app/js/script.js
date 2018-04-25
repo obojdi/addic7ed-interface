@@ -48,13 +48,15 @@ $(document).ready(() => {
 					success: function(results) {
 						$spinner.addClass('hidden');
 						select_seasons.enable();
-						var selector = $(results).find('option').get().map(function(el, i) {
-							var obj = {
-								id: $(el).val(),
-								name: $(el).text()
-							}
-							return obj;
-						});
+						var
+							html = results.replace(/<img\b[^>]*>/ig, ''),
+							selector = $(html).find('option').get().map(function(el, i) {
+								var obj = {
+									id: $(el).val(),
+									name: $(el).text()
+								}
+								return obj;
+							});
 						$('h1').text($(".shows option:selected").text());
 						callback(selector);
 					},
@@ -90,13 +92,15 @@ $(document).ready(() => {
 					success: function(results) {
 						$spinner.addClass('hidden');
 						select_episodes.enable();
-						var selector = $(results).find('option').get().map(function(el, i) {
-							var obj = {
-								id: $(el).val(),
-								name: $(el).text()
-							}
-							return obj;
-						});
+						var
+							html = results.replace(/<img\b[^>]*>/ig, ''),
+							selector = $(html).find('option').get().map(function(el, i) {
+								var obj = {
+									id: $(el).val(),
+									name: $(el).text()
+								}
+								return obj;
+							});
 						callback(selector);
 					},
 					error: function() {
@@ -130,7 +134,8 @@ $(document).ready(() => {
 				success: function(results) {
 					$spinner.addClass('hidden');
 					var
-						$rows = $(results).find('#season tr.epeven').filter((b, a) => parseInt($(a).find('td').eq(1).text()) == value);
+						html = results.replace(/<img\b[^>]*>/ig, ''),
+						$rows = $(html).find('#season tr.epeven').filter((b, a) => parseInt($(a).find('td').eq(1).text()) == value);
 					$rows.sort((a, b) => {
 						var
 							versionA = $(a).find('td.c').eq(0).text(),
