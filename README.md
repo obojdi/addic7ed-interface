@@ -9,7 +9,7 @@ npm start
 ### TODO
 
 1. ~~populate select dropdown items via ajax on demand~~
-1. add shows hierarchy
+1. ~~add shows hierarchy~~
 1. choose some css ui framework
 1. use this project as a base to learn react/vue OR improve angular skills
 1. turn seasons select into radio buttons

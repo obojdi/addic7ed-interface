@@ -28,7 +28,7 @@ const urls = {
 	ajaxShows: 'http://www.addic7ed.com/ajax_getShows.php',
 	ajaxSeasons: 'http://www.addic7ed.com/ajax_getSeasons.php',
 	ajaxEpisodes: 'http://www.addic7ed.com/ajax_getEpisodes.php',
-	ajaxFull: 'http://www.addic7ed.com/ajax_loadShow.php?show=94&season=2'
+	ajaxFull: 'http://www.addic7ed.com/ajax_loadShow.php'
 }
 
 if (typeof localStorage === "undefined" || localStorage === null) {
@@ -193,11 +193,6 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 		requestData.title = requestData.shows.slice().filter((s) => s.id == params.show).pop().name || 'title not loaded'
 		// TODO:
 		// if show is selected then load season list
-	}
-	if (params.season) {
-		// TODO: add GET params to request
-		// show param is already set
-		// call episode list
 		options.url = urls.ajaxSeasons;
 		options.qs = {
 			showID: params.show
@@ -208,22 +203,14 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 				var
 					$ = cheerio.load(body, {
 						normalizeWhitespace: true
-					}),
-					serverDown = $.text().match('mysql_pconnect') ? true : false,
-					title;
+					});
 				console.log("season request sent");
-				if (serverDown) {
-					requestData.title = 'addic7ed server down'
-				} else {
-					requestData.seasons = $('#qsiSeason option').map(function(i, el) {
-						return {
-							id: parseInt($(el).val()),
-							name: $(el).text()
-						}
-					}).get();
-				}
-				// console.log("requestData.seasons:");
-				// console.log(requestData.seasons);
+				requestData.seasons = $('#qsiSeason option').map(function(i, el) {
+					return {
+						id: parseInt($(el).val()),
+						name: $(el).text()
+					}
+				}).get();
 				// TODO:
 				// if season is selected then load episodes list
 
@@ -232,53 +219,66 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 			}
 		});
 	}
-	if (params.episode) {
-		// show and season params are already set
-		// call subtitle file list, all languages
+	if (params.season) {
+		// call episode list
 		options.url = urls.ajaxEpisodes;
 		options.qs = {
 			showID: params.show,
 			season: params.season
 		}
-		console.log('qs: ' )
-		console.log(options.qs)
+		request(options, function(error, response, body) {
+			if (!error) {
+				var
+					$ = cheerio.load(body, {
+						normalizeWhitespace: true
+					});
+				console.log("episode request sent");
+				requestData.episodes = $('#qsiEp option').map(function(i, el) {
+					return {
+						id: $(el).val().split('x')[1],
+						name: $(el).text()
+					}
+				}).get();
+			} else {
+				console.log("Error: " + error);
+			}
+		});
+	}
+	if (params.episode) {
+		// call subtitle file list, all languages
+
+		options.url = urls.ajaxFull;
+		options.qs = {
+			show: params.show,
+			season: params.season
+		}
 		request(options, function(error, response, body) {
 			if (!error) {
 				var
 					$ = cheerio.load(body, {
 						normalizeWhitespace: true
 					}),
-					serverDown = $.text().match('mysql_pconnect') ? true : false,
-					title;
-				console.log("episode request sent");
-				if (serverDown) {
-					requestData.title = 'addic7ed server down'
-					// console.log($.html())
-				} else {
-					requestData.episodes = $('#qsiEp option').map(function(i, el) {
-						return {
-							id: $(el).val().split('x')[1],
-							name: $(el).text()
-						}
-					}).get();
-				}
-				// TODO:
-				// if episode is selected then load subtitles list
-
-				requestData.episode_subtitles = $('#container95m table .tabel95').map((i, el) => {
+					rows = $('#season tr.epeven').filter((b, a) => parseInt($(a).find('td').eq(1).text()) == params.episode);
+				console.log("subs request sent");
+				requestData.episode_subtitles = rows.map((i, el) => {
 					return {
-						version: $(el).find('td.NewsTitle').text(),
-						lang: $(el).find('td.language').text(),
-						link: $(el).find('a.buttonDownload').attr('href')
+						version: $(el).find('td.c').eq(0).text(),
+						ext: $(el).find('td').eq(2).find('a').attr('href'),
+						link: $(el).find('td.c').eq(-1).find('a').attr('href'),
+						lang: $(el).find('td').eq(3).text(),
+						checkbox: $(el).find('input').html()
 					};
 
+				}).get().sort((a,b)=>{
+					var _lang = a.lang.localeCompare(b.lang);
+					var _version = a.version.localeCompare(b.version);
+					return _lang || _version;
 				});
-
-
 			} else {
 				console.log("Error: " + error);
 			}
 		});
+
 	}
 	if (params.language) {
 		// TODO:
@@ -291,7 +291,7 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 	// rewrite to promises
 	setTimeout(() => {
 		res.render('eureka', requestData);
-	}, 2000)
+	}, 3000)
 
 
 });
