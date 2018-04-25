@@ -77,7 +77,7 @@ $(document).ready(() => {
 			select_episodes.load(function(callback) {
 				xhr && xhr.abort();
 				xhr = $.ajax({
-					url: proxy + 'http://www.addic7ed.com/ajax_getEpisodes.php?showID=94&&season=2',
+					url: proxy + 'http://www.addic7ed.com/ajax_getEpisodes.php',
 					data: {
 						//	pass select_shows value
 						showID: select_shows.getValue(),
@@ -117,32 +117,49 @@ $(document).ready(() => {
 			// English subs
 			parts.push(1);
 			var suffix = parts.join('/');
-			var url = proxy + 'http://www.addic7ed.com/serie/' + suffix
+			var url = proxy + 'http://www.addic7ed.com/ajax_loadShow.php'
 			console.log(url)
 			xhr && xhr.abort();
 			xhr = $.ajax({
 				url: url,
 				data: {
 					//	pass select_shows value
-					// showID: select_shows.getValue(),
-					// season: value
+					show: select_shows.getValue(),
+					season: select_seasons.getValue()
+					// episode: value
 				},
 				success: function(results) {
 					$table.html('')
-					res__ = $(results);
-					$(results).find('#container95m table .tabel95').each(function(i, el) {
+					var $rows = $(results).find('#season tr.epeven').filter((b, a) => parseInt($(a).find('td').eq(1).text()) == value);
+					$rows.sort((a, b) => {
 						var
+							versionA = $(a).find('td.c').eq(0).text(),
+							versionB = $(b).find('td.c').eq(0).text(),
+							langA = $(a).find('td').eq(3).text(),
+							langB = $(b).find('td').eq(3).text();
+
+						var _lang = langA.localeCompare(langB);
+						var _version = versionA.localeCompare(versionB);
+						return _lang || _version;
+					});
+					$rows.each(function(i, el) {
+						var
+							// version: $(el).find('td.c').eq(0).text(),
+							// ext: $(el).find('td').eq(2).find('a').attr('href'),
+							// link: $(el).find('td.c').eq(-1).find('a').attr('href'),
+							// lang: $(el).find('td').eq(3).text(),
+							// checkbox: $(el).find('input').html()
 							$tr = $('<tr/>'),
-							version = $(el).find('td.NewsTitle').text(),
+							version = $(el).find('td.c').eq(0).text(),
 							$version = $('<td/>'),
 							base = 'http://www.addic7ed.com',
-							link = $(el).find('a.buttonDownload').attr('href'),
-							$link = $('<a/>').attr('href', base + link).attr('target', '_blank').text(version);
+							link = $(el).find('td.c').eq(-1).find('a').attr('href'),
+							$link = $('<a/>').attr('href', base + link).attr('target', '_blank').text(version),
+							lang = $(el).find('td').eq(3).text();
 						$link.appendTo($version);
-						// lang = $(el).find('td.language').text(),
-						// $lang = $('<td/>').text(lang);
-						// $lang.appendTo($tr)
+						$lang = $('<td/>').text(lang);
 						$version.appendTo($tr)
+						$lang.appendTo($tr)
 						$tr.appendTo($table);
 					});
 				},

@@ -20,6 +20,8 @@ npm start
 1. split handlers into es6 modules
 1. check local storage length on first launch
 1. send http/ajax request on select change ?
+1. ~~rewrite client-side ajax at subs list~~
+1. add ajax loading css spinner (c) @tobiasahlin
 
 ### Notes
 
