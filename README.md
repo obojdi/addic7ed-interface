@@ -29,6 +29,7 @@ npm start
 1. send http/ajax request on select change ?
 1. ~~rewrite client-side ajax at subs list~~
 1. add ajax loading css spinner (c) @tobiasahlin
+1. test coverage
 
 ### Notes
 

@@ -13,6 +13,8 @@ var
 	request = require('request'),
 	cheerio = require('cheerio'),
 	moment = require('moment'),
+	Q = require("q"),
+
 	// 
 
 	index = require('./routes/index'),
@@ -263,7 +265,8 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 					$ = cheerio.load(html, {
 						normalizeWhitespace: true
 					}),
-					rows = $('#season tr.epeven').filter((b, a) => parseInt($(a).find('td').eq(1).text()) == params.episode);
+					rows = $('#season tr.epeven').filter((b, a) => parseInt($(a).find('td').eq(1).text()) == params.episode),
+					langs = $('#langs tr');
 				console.log("subs request sent");
 				requestData.episode_subtitles = rows.map((i, el) => {
 					return {
@@ -271,13 +274,25 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 						ext: $(el).find('td').eq(2).find('a').attr('href'),
 						link: $(el).find('td.c').eq(-1).find('a').attr('href'),
 						lang: $(el).find('td').eq(3).text(),
-						checkbox: $(el).find('input').html()
+						// checkbox: $(el).find('input').html()
+						checkbox: $(el).find('input')
 					};
 
 				}).get().sort((a, b) => {
 					var _lang = a.lang.localeCompare(b.lang);
 					var _version = a.version.localeCompare(b.version);
 					return _lang || _version;
+				});
+				// lanuages array
+				requestData.langs = langs.map((i, el) => {
+					return {
+						lang: $(el).find('td').eq(0).text(),
+						checkbox: $(el).find('input')
+					};
+				}).get().sort((a, b) => {
+					var _lang = a.lang.localeCompare(b.lang);
+					// var _version = a.version.localeCompare(b.version);
+					return _lang;
 				});
 			} else {
 				console.log("Error: " + error);
@@ -295,7 +310,7 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 	// TODO:
 	// rewrite to promises
 	setTimeout(() => {
-		res.render('eureka', requestData);
+		res.render('subtitles', requestData);
 	}, 3000)
 
 

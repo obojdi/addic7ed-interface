@@ -31,5 +31,9 @@ block content
 					td
 						a(href=base + sub.link, target='_blank')= sub.version
 					td= sub.lang
+	for lang in langs
+		p
+			#{lang.lang}
+			#{lang.checkbox}
 	//- spinner
 	include ./../components/spinner.pug
