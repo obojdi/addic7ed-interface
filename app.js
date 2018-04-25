@@ -74,7 +74,7 @@ app.use(
 
 app.use('/app', express.static(__dirname + '/app'));
 
-app.get('/camera.svg', function(req, res) {
+app.get('/favicon.ico', function(req, res) {
 	res.status(204);
 });
 
@@ -186,79 +186,93 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 
 
 	if (params.show) {
-		// console.log('show: ' + params.show)
-		options.url = urls.ajaxShows
 		// call season list
+		requestData.shows = JSON.parse(localStorage.getItem('shows')).items || [];
+
+		requestData.title = requestData.shows.slice().filter((s) => s.id == params.show).pop().name || 'title not loaded'
 	}
 	if (params.season) {
 		// TODO: add GET params to request
-		options.url = urls.ajaxSeasons;
+		// show param is already set
 		// call episode list
+		options.url = urls.ajaxSeasons;
 		// console.log('season: ' + params.season)
+		request(options, function(error, response, body) {
+			if (!error) {
+				var
+					$ = cheerio.load(body, {
+						normalizeWhitespace: true
+					}),
+					serverDown = $.text().match('mysql_pconnect') ? true : false,
+					title;
+				console.log("season request sent");
+				if (serverDown) {
+					requestData.title = 'addic7ed server down'
+					// console.log($.html())
+				} else {
+
+					requestData.seasons = $('#qsiSeason option').map(function(i, el) {
+						return {
+							id: parseInt($(el).val()),
+							name: $(el).text()
+						}
+					}).get();
+				}
+
+			} else {
+				console.log("Error: " + error);
+			}
+		});
 	}
 	if (params.episode) {
-		options.url = urls.ajaxEpisodes;
+		// show and season params are already set
 		// call subtitle file list, all languages
+		options.url = urls.ajaxEpisodes;
 		// console.log('episode: ' + params.episode)
+		request(options, function(error, response, body) {
+			if (!error) {
+				var
+					$ = cheerio.load(body, {
+						normalizeWhitespace: true
+					}),
+					serverDown = $.text().match('mysql_pconnect') ? true : false,
+					title;
+				console.log("episode request sent");
+				if (serverDown) {
+					requestData.title = 'addic7ed server down'
+					// console.log($.html())
+				} else {
+					requestData.episodes = $('#qsiEp option').map(function(i, el) {
+						return {
+							id: parseInt($(el).val()),
+							name: $(el).text()
+						}
+					}).get();
+				}
+				requestData.episode_subtitles = $('#container95m table .tabel95').map((i, el) => {
+					return {
+						version: $(el).find('td.NewsTitle').text(),
+						lang: $(el).find('td.language').text(),
+						link: $(el).find('a.buttonDownload').attr('href')
+					};
+
+				});
+
+
+			} else {
+				console.log("Error: " + error);
+			}
+		});
 	}
 	if (params.language) {
+		// TODO:
+		// show, season and episode params are already set
 		// call subtitle file list, selected language
 		// console.log('language: ' + params.language)
 	}
-	let req__ = request(options, function(error, response, body) {
-		if (!error) {
-			var
-				$ = cheerio.load(body, {
-					normalizeWhitespace: true
-				}),
-				serverDown = $.text().match('mysql_pconnect') ? true : false,
-				title;
-			if (serverDown) {
-				requestData.title = 'addic7ed server down'
-				// console.log($.html())
-			} else {
+	requestData.params = params;
+	res.render('eureka', requestData);
 
-				requestData.shows = JSON.parse(localStorage.getItem('shows')).items || [];
-
-				requestData.seasons = $('#qsiSeason option').map(function(i, el) {
-					return {
-						id: parseInt($(el).val()),
-						name: $(el).text()
-					}
-				}).get();
-				requestData.episodes = $('#qsiEp option').map(function(i, el) {
-					return {
-						id: parseInt($(el).val()),
-						name: $(el).text()
-					}
-				}).get();
-				/*
-								.map(a => {
-									id: a.val(),
-									'name': a.text()
-								})
-				*/
-			}
-			// $('table.tabel95').filter((i,el)=>{return $(el).children() })
-			requestData.episode_subtitles = $('#container95m table .tabel95').map((i, el) => {
-				return {
-					version: $(el).find('td.NewsTitle').text(),
-					lang: $(el).find('td.language').text(),
-					link: $(el).find('a.buttonDownload').attr('href')
-				};
-
-			});
-			requestData.params = params;
-
-			// .pop().name || 'title not loaded'
-			requestData.title = requestData.shows.slice().filter((s) => s.id == params.show).pop().name || 'title not loaded'
-
-			// res.render(req.params.show, requestData);
-			res.render('eureka', requestData);
-		} else {
-			console.log("Error: " + error);
-		}
-	});
 
 });
 

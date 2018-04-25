@@ -9,21 +9,24 @@ block content
 		h1= title || 'peqwa'
 	select.shows
 		for show in shows
-			option(value=show.id, selected=(show.id==params.show?'selected':false))= show.name
+			option(value=show.id, selected=(show.id == params.show ? 'selected' : false))= show.name
 	h2 season
 	select.seasons
 		option
-		for s in seasons
-			option(value=s.id)= s.name
+		if seasons
+			for s in seasons
+				option(value=s.id)= s.name
 	h2 episode
 	select.episodes
 		option
-		for ep in episodes
-			option(value=ep.id)= ep.name
+			if episodes
+				for ep in episodes
+					option(value=ep.id)= ep.name
 	h2 single episode subs
 	table.subs
-		for sub in episode_subtitles
-			tr
-				td
-					a(href=base + sub.link, target='_blank')= sub.version
-				td= sub.lang
+		if episode_subtitles
+			for sub in episode_subtitles
+				tr
+					td
+						a(href=base + sub.link, target='_blank')= sub.version
+					td= sub.lang
