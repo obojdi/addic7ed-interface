@@ -17,7 +17,8 @@
   ],
   "dependencies": {
     "jquery": "^3.3.1",
-    "selectize": "^0.12.4"
+    "selectize": "^0.12.4",
+    "SpinKit": "spinkit#^1.2.5"
   },
   "resolutions": {
     "jquery": "^3.3.1"

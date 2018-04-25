@@ -132,3 +132,14 @@ a
 	font-size:smaller;
 	line-height:1.4
 }
+/* helpers */
+.hidden
+{
+	display: none!important;
+}
+/* spinner */
+.sk-wave .sk-rect
+{
+	background: #009BCB;
+	margin: 0.1rem;
+}

@@ -10,7 +10,8 @@ $(document).ready(() => {
 		$select_shows,
 		$select_seasons,
 		$select_episodes,
-		$table = $('table.subs');
+		$table = $('table.subs'),
+		$spinner = $('.sk-wave');
 
 
 	/**
@@ -36,6 +37,7 @@ $(document).ready(() => {
 			select_episodes.clearOptions();
 			//	clear results
 			$table.html('');
+			$spinner.removeClass('hidden');
 			select_seasons.load(function(callback) {
 				xhr && xhr.abort();
 				xhr = $.ajax({
@@ -44,6 +46,7 @@ $(document).ready(() => {
 						showID: value,
 					},
 					success: function(results) {
+			$spinner.addClass('hidden');
 						select_seasons.enable();
 						var selector = $(results).find('option').get().map(function(el, i) {
 							var obj = {
@@ -74,6 +77,7 @@ $(document).ready(() => {
 			select_episodes.clearOptions();
 			//	clear results
 			$table.html('');
+			$spinner.removeClass('hidden');
 			select_episodes.load(function(callback) {
 				xhr && xhr.abort();
 				xhr = $.ajax({
@@ -84,6 +88,7 @@ $(document).ready(() => {
 						season: value
 					},
 					success: function(results) {
+			$spinner.addClass('hidden');
 						select_episodes.enable();
 						var selector = $(results).find('option').get().map(function(el, i) {
 							var obj = {
@@ -109,7 +114,9 @@ $(document).ready(() => {
 		onChange: function(value) {
 			if (!value.length) return;
 			//	clear results
-			var parts = []
+			$table.html('');
+			$spinner.removeClass('hidden');
+			var parts = [];
 			parts.push($(".shows option:selected").text().replace(/\s/, '_'))
 			// parts.push(select_shows.getValue());
 			parts.push(select_seasons.getValue());
@@ -129,8 +136,9 @@ $(document).ready(() => {
 					// episode: value
 				},
 				success: function(results) {
-					$table.html('')
-					var $rows = $(results).find('#season tr.epeven').filter((b, a) => parseInt($(a).find('td').eq(1).text()) == value);
+			$spinner.addClass('hidden');
+					var
+					 $rows = $(results).find('#season tr.epeven').filter((b, a) => parseInt($(a).find('td').eq(1).text()) == value);
 					$rows.sort((a, b) => {
 						var
 							versionA = $(a).find('td.c').eq(0).text(),
