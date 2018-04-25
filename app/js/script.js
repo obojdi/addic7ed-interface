@@ -46,7 +46,7 @@ $(document).ready(() => {
 						showID: value,
 					},
 					success: function(results) {
-			$spinner.addClass('hidden');
+						$spinner.addClass('hidden');
 						select_seasons.enable();
 						var selector = $(results).find('option').get().map(function(el, i) {
 							var obj = {
@@ -88,7 +88,7 @@ $(document).ready(() => {
 						season: value
 					},
 					success: function(results) {
-			$spinner.addClass('hidden');
+						$spinner.addClass('hidden');
 						select_episodes.enable();
 						var selector = $(results).find('option').get().map(function(el, i) {
 							var obj = {
@@ -116,14 +116,6 @@ $(document).ready(() => {
 			//	clear results
 			$table.html('');
 			$spinner.removeClass('hidden');
-			var parts = [];
-			parts.push($(".shows option:selected").text().replace(/\s/, '_'))
-			// parts.push(select_shows.getValue());
-			parts.push(select_seasons.getValue());
-			parts.push(select_episodes.getValue().split('x')[1]);
-			// English subs
-			parts.push(1);
-			var suffix = parts.join('/');
 			var url = proxy + 'http://www.addic7ed.com/ajax_loadShow.php'
 			console.log(url)
 			xhr && xhr.abort();
@@ -132,13 +124,13 @@ $(document).ready(() => {
 				data: {
 					//	pass select_shows value
 					show: select_shows.getValue(),
+					//	pass select_seasons value
 					season: select_seasons.getValue()
-					// episode: value
 				},
 				success: function(results) {
-			$spinner.addClass('hidden');
+					$spinner.addClass('hidden');
 					var
-					 $rows = $(results).find('#season tr.epeven').filter((b, a) => parseInt($(a).find('td').eq(1).text()) == value);
+						$rows = $(results).find('#season tr.epeven').filter((b, a) => parseInt($(a).find('td').eq(1).text()) == value);
 					$rows.sort((a, b) => {
 						var
 							versionA = $(a).find('td.c').eq(0).text(),
