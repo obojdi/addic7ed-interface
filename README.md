@@ -15,8 +15,11 @@ npm start
 1. turn seasons select into radio buttons
 1. add support for login, language select, HI and stats
 1. add url routing
+1. ~~cache shows list~~
 1. wrap http requests into promises
 1. split handlers into es6 modules
+1. check local storage length on first launch
+1. send http/ajax request on select change ?
 
 ### Notes
 

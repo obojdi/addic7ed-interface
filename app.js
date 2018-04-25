@@ -26,8 +26,8 @@ var
 const urls = {
 	sample: 'http://www.addic7ed.com/serie/Eureka/2/1/1',
 	ajaxShows: 'http://www.addic7ed.com/ajax_getShows.php',
-	ajaxSeasons: 'http://www.addic7ed.com/ajax_getSeasons.php?showID=94',
-	ajaxEpisodes: 'http://www.addic7ed.com/ajax_getEpisodes.php?showID=94&&season=2',
+	ajaxSeasons: 'http://www.addic7ed.com/ajax_getSeasons.php',
+	ajaxEpisodes: 'http://www.addic7ed.com/ajax_getEpisodes.php',
 	ajaxFull: 'http://www.addic7ed.com/ajax_loadShow.php?show=94&season=2'
 }
 
@@ -114,7 +114,8 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 		params = req.params || {},
 		requestData = {},
 		options = {
-			headers: headers
+			headers: headers,
+			data: {}
 		};
 
 	console.log(' ');
@@ -190,12 +191,17 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 		requestData.shows = JSON.parse(localStorage.getItem('shows')).items || [];
 
 		requestData.title = requestData.shows.slice().filter((s) => s.id == params.show).pop().name || 'title not loaded'
+		// TODO:
+		// if show is selected then load season list
 	}
 	if (params.season) {
 		// TODO: add GET params to request
 		// show param is already set
 		// call episode list
 		options.url = urls.ajaxSeasons;
+		options.qs = {
+			showID: params.show
+		}
 		// console.log('season: ' + params.season)
 		request(options, function(error, response, body) {
 			if (!error) {
@@ -208,9 +214,7 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 				console.log("season request sent");
 				if (serverDown) {
 					requestData.title = 'addic7ed server down'
-					// console.log($.html())
 				} else {
-
 					requestData.seasons = $('#qsiSeason option').map(function(i, el) {
 						return {
 							id: parseInt($(el).val()),
@@ -218,6 +222,10 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 						}
 					}).get();
 				}
+				// console.log("requestData.seasons:");
+				// console.log(requestData.seasons);
+				// TODO:
+				// if season is selected then load episodes list
 
 			} else {
 				console.log("Error: " + error);
@@ -228,7 +236,12 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 		// show and season params are already set
 		// call subtitle file list, all languages
 		options.url = urls.ajaxEpisodes;
-		// console.log('episode: ' + params.episode)
+		options.qs = {
+			showID: params.show,
+			season: params.season
+		}
+		console.log('qs: ' )
+		console.log(options.qs)
 		request(options, function(error, response, body) {
 			if (!error) {
 				var
@@ -244,11 +257,14 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 				} else {
 					requestData.episodes = $('#qsiEp option').map(function(i, el) {
 						return {
-							id: parseInt($(el).val()),
+							id: $(el).val().split('x')[1],
 							name: $(el).text()
 						}
 					}).get();
 				}
+				// TODO:
+				// if episode is selected then load subtitles list
+
 				requestData.episode_subtitles = $('#container95m table .tabel95').map((i, el) => {
 					return {
 						version: $(el).find('td.NewsTitle').text(),
@@ -271,7 +287,11 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 		// console.log('language: ' + params.language)
 	}
 	requestData.params = params;
-	res.render('eureka', requestData);
+	// TODO:
+	// rewrite to promises
+	setTimeout(() => {
+		res.render('eureka', requestData);
+	}, 2000)
 
 
 });
