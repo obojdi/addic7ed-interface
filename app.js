@@ -22,12 +22,14 @@ var
 	routes = require('./routes/routes'),
 	texts = require('./app/js/data'),
 	// 
+	// cache = require('./app/js/cache'),
 	// 
 	app = express(),
 
 	headers = {
 		'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'
-	};
+	},
+	cache = null;
 
 const urls = {
 	sample: 'http://www.addic7ed.com/serie/Eureka/2/1/1',
@@ -41,7 +43,6 @@ if (typeof localStorage === "undefined" || localStorage === null) {
 	var LocalStorage = require('node-localstorage').LocalStorage;
 	localStorage = new LocalStorage('./localStorage');
 }
-
 /*
 parse({url: url}, (data) => {
   console.log(data);
@@ -117,12 +118,23 @@ app.get('/', function(req, res) {
 	next();
 });
 
-var deferred = Q.defer();
-deferred.promise.then(function(obj) {
+/*
+var deferred1 = Q.defer();
+var deferred2 = Q.defer();
+deferred1.promise.then(function(obj) {
 	console.log(obj);
 });
-deferred.resolve("Hello World");
-
+deferred2.promise.then(function(obj) {
+	console.log(obj);
+});
+// Q.all(deferred1,deferred2).resolve()
+deferred1.resolve({
+	a: "Hello World"
+});
+deferred2.resolve({
+	b: "Hello World"
+});
+*/
 
 let requestData = {};
 let options = {
@@ -145,6 +157,9 @@ let options = {
 
 
 let request_shows = (opts) => {
+	// var deferred = Q.defer();
+	// return deferred.promise;
+
 	return new Promise((resolve) => {
 		request(opts, function(error, response, body) {
 			var
@@ -158,8 +173,11 @@ let request_shows = (opts) => {
 					name: $(el).text()
 				}
 			}).get();
+			// resolve(opts);
+			resolve(requestData);
 		});
-		resolve(opts);
+		// console.log('request_shows');
+		// console.log(requestData);
 	});
 }
 
@@ -177,25 +195,107 @@ let request_seasons = (opts) => {
 					name: $(el).text()
 				}
 			}).get();
+			// resolve(opts);
+			resolve(requestData);
 		});
-		resolve(opts);
+		// console.log('request_seasons');
+		// console.log(requestData);
+	});
+}
+
+let check = () => {
+	return new Promise((resolve, reject) => {
+		// check if local storage item exists
+		if (typeof localStorage.getItem('shows') !== 'string') {
+			// no shows item in LS, set LS shows and cache var anew
+			cache = {
+				shows: {
+					// !
+					timestamp: moment().subtract(7, 'days').format(),
+					// items: {}
+					items: []
+					// items: [{id:null,name:null}]
+				}
+			};
+			localStorage.setItem('shows', JSON.stringify(cache.shows));
+		} else {
+			// LS shows exist, pull shows from LS to cache var
+			cache = {
+				shows: {
+					timestamp: moment(JSON.parse(localStorage.getItem('shows')).timestamp).format(),
+					items: JSON.parse(localStorage.getItem('shows')).items
+				}
+			};
+		}
+		// cache shows 
+		if (moment().subtract(1, 'minutes').isAfter(cache.shows.timestamp)) {
+			// timestamp exceeded, sending request
+			var opts = {
+				url: urls.ajaxShows,
+				headers: headers
+			};
+			let request_shows = request(opts, (err, resp, body) => {
+				if (!err) {
+					// parse request results
+					var
+						html = body.replace(/<img\b[^>]*>/ig, ''),
+						$ = cheerio.load(html, {
+
+							normalizeWhitespace: true
+						}),
+						serverDown = $.text().match('mysql_pconnect') ? true : false,
+						title;
+					if (serverDown) {
+						// throw error
+						var err_text = 'addic7ed server down'
+					} else {
+						// TODO: call .get() on cheerio collection, not after mapping
+						var items = $('#qsShow option').map(function(i, el) {
+							return {
+								id: parseInt($(el).val()),
+								name: $(el).text()
+							}
+						}).get();
+					}
+					// store new shows data in local storage/redis
+					localStorage.setItem('shows', JSON.stringify({
+						timestamp: moment(),
+						//	put request parse results to items
+						items: items
+					}));
+					console.log("Sent request to update shows cache");
+				} else {
+					console.log("Error: " + error);
+				}
+			})
+			resolve(cache);
+		} else {
+			// timestamp not exceeded, keep cache
+			console.log("pulled shows from cache");
+			resolve(cache);
+		}
+		requestData.shows=cache.shows.items
 	});
 }
 
 
 app.get('/test', function(req, res, next) {
+check();
+	console.log(requestData);
+	requestData.params = {
+		show: 94,
+		season: 2,
+		episode: 3
+	}
+	// cache.check();
+
 	let send_requests = () => {
 		let i;
 		let promises = [];
-		requestData.params = {
-			show: 94,
-			season: 2,
-			episode: 3
-		}
 
 		// let rq = Q.when(request_shows).then(results => console.log(results.resolve));
 
-		promises.push(request_shows(options.shows), request_seasons(options.seasons));
+		promises.push(request_shows(options.shows), request_seasons(options.seasons), check());
 		Promise.all(promises)
 			.then((results) => {
 				console.log(" ");
@@ -223,74 +323,7 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 		};
 
 	console.log(' ');
-	// check if local storage item exists
-	if (typeof localStorage.getItem('shows') !== 'string') {
-		// no shows item in LS, set LS shows and cache var anew
-		var cache = {
-			shows: {
-				// !
-				timestamp: moment().subtract(7, 'days').format(),
-				// items: {}
-				items: []
-				// items: [{id:null,name:null}]
-			}
-		};
-		localStorage.setItem('shows', JSON.stringify(cache.shows));
-	} else {
-		// LS shows exist, pull shows from LS to cache var
-		var cache = {
-			shows: {
-				timestamp: moment(JSON.parse(localStorage.getItem('shows')).timestamp).format(),
-				items: JSON.parse(localStorage.getItem('shows')).items
-			}
-		};
-	}
-	// cache shows 
-	if (moment().subtract(1, 'minutes').isAfter(cache.shows.timestamp)) {
-		// timestamp exceeded, sending request
-		var opts = {
-			url: urls.ajaxShows,
-			headers: headers
-		};
-		let request_shows = request(opts, (err, resp, body) => {
-			if (!err) {
-				// parse request results
-				var
-					html = body.replace(/<img\b[^>]*>/ig, ''),
-					$ = cheerio.load(html, {
-
-						normalizeWhitespace: true
-					}),
-					serverDown = $.text().match('mysql_pconnect') ? true : false,
-					title;
-				if (serverDown) {
-					// throw error
-					var err_text = 'addic7ed server down'
-				} else {
-					// TODO: call .get() on cheerio collection, not after mapping
-					var items = $('#qsShow option').map(function(i, el) {
-						return {
-							id: parseInt($(el).val()),
-							name: $(el).text()
-						}
-					}).get();
-				}
-				// store new shows data in local storage/redis
-				localStorage.setItem('shows', JSON.stringify({
-					timestamp: moment(),
-					//	put request parse results to items
-					items: items
-				}));
-				console.log("Sent request to update shows cache");
-			} else {
-				console.log("Error: " + error);
-			}
-		})
-	} else {
-		// timestamp not exceeded, keep cache
-		console.log("pulled shows from cache");
-	}
-
+	// cache.check();
 
 	if (params.show) {
 		// call season list
