@@ -11,13 +11,15 @@ var
 	bodyParser = require('body-parser'),
 	stylus = require('stylus'),
 	request = require('request'),
+	rp = require('request-promise-native'),
 	cheerio = require('cheerio'),
 	moment = require('moment'),
-	Q = require("q"),
+	// Q = require("q"),
 
 	// 
 
 	index = require('./routes/index'),
+	test = require('./routes/test'),
 	users = require('./routes/users'),
 	routes = require('./routes/routes'),
 	texts = require('./app/js/data'),
@@ -143,7 +145,13 @@ let options = {
 		url: urls.ajaxSeasons,
 		qs: {
 			showID: 94
+		},
+		transform: (body) => {
+			var html = body.replace(/<img\b[^>]*>/ig, '')
+
+			cheerio.load(html)
 		}
+
 	},
 	seasons: {
 		headers: headers,
@@ -156,6 +164,32 @@ let options = {
 }
 
 
+let request_shows = (opts) => {
+	return new Promise(function(resolve, reject) {
+		rp(opts)
+			.then(function($) {
+				// Process html like you would with jQuery...
+				// requestData.seasons = $('#qsiSeason option').map(function(i, el) {
+				seasons = $('#qsiSeason option').map(function(i, el) {
+					return {
+						id: parseInt($(el).val()),
+						name: $(el).text()
+					}
+				}).get();
+
+				 resolve(seasons);
+				console.log('request_shows promised');
+
+				console.log(requestData);
+			})
+			.catch(function(err) {
+				console.log('request_shows promise failed');
+				// Crawling failed or Cheerio choked...
+			});
+	});
+}
+// request_shows(options.shows)
+/*
 let request_shows = (opts) => {
 	// var deferred = Q.defer();
 	// return deferred.promise;
@@ -180,7 +214,8 @@ let request_shows = (opts) => {
 		// console.log(requestData);
 	});
 }
-
+*/
+/*
 let request_seasons = (opts) => {
 	return new Promise((resolve) => {
 		request(opts, function(error, response, body) {
@@ -202,7 +237,7 @@ let request_seasons = (opts) => {
 		// console.log(requestData);
 	});
 }
-
+*/
 let check = () => {
 	return new Promise((resolve, reject) => {
 		// check if local storage item exists
@@ -274,44 +309,12 @@ let check = () => {
 			console.log("pulled shows from cache");
 			resolve(cache);
 		}
-		requestData.shows=cache.shows.items
+		requestData.shows = cache.shows.items
 	});
 }
 
 
-app.get('/test', function(req, res, next) {
-check();
-	console.log(requestData);
-	requestData.params = {
-		show: 94,
-		season: 2,
-		episode: 3
-	}
-	// cache.check();
-
-	let send_requests = () => {
-		let i;
-		let promises = [];
-
-		// let rq = Q.when(request_shows).then(results => console.log(results.resolve));
-
-		promises.push(request_shows(options.shows), request_seasons(options.seasons), check());
-		Promise.all(promises)
-			.then((results) => {
-				console.log(" ");
-				console.log("All done");
-				console.log(requestData);
-				res.render('subtitles', requestData);
-
-				// render view
-			})
-			.catch((e) => {
-				// Handle errors here
-			});
-	}
-	send_requests();
-
-});
+app.get('/test', test);
 
 app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 	var
@@ -340,6 +343,8 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 		// let rq = Q.when(request("https://github.com/kriskowal/q"));
 
 		// console.log('season: ' + params.season)
+		
+		/*
 		request(options, function(error, response, body) {
 			if (!error) {
 				var
@@ -361,6 +366,7 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 				console.log("Error: " + error);
 			}
 		});
+		*/
 	}
 	if (params.season) {
 		// call episode list
@@ -369,6 +375,7 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 			showID: params.show,
 			season: params.season
 		}
+		/*
 		request(options, function(error, response, body) {
 			if (!error) {
 				var
@@ -387,6 +394,7 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 				console.log("Error: " + error);
 			}
 		});
+		*/
 	}
 	if (params.episode) {
 		// call subtitle file list, all languages
@@ -396,6 +404,7 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 			show: params.show,
 			season: params.season
 		}
+		/*
 		request(options, function(error, response, body) {
 			if (!error) {
 				var
@@ -436,6 +445,7 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 				console.log("Error: " + error);
 			}
 		});
+		*/
 
 	}
 	if (params.language) {
