@@ -122,6 +122,7 @@ $(document).ready(() => {
 			$spinner.removeClass('hidden');
 			var url = proxy + 'http://www.addic7ed.com/ajax_loadShow.php'
 			console.log(url)
+			console.log(value)
 			xhr && xhr.abort();
 			xhr = $.ajax({
 				url: url,
@@ -135,7 +136,8 @@ $(document).ready(() => {
 					$spinner.addClass('hidden');
 					var
 						html = results.replace(/<img\b[^>]*>/ig, ''),
-						$rows = $(html).find('#season tr.epeven').filter((b, a) => parseInt($(a).find('td').eq(1).text()) == value);
+						$rows = $(html).find('#season tr.epeven').filter((b, a) => parseInt($(a).find('td').eq(1).text()) == value.split('x')[1]);
+			console.log(value.split('x')[1])
 					$rows.sort((a, b) => {
 						var
 							versionA = $(a).find('td.c').eq(0).text(),
