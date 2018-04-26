@@ -100,15 +100,15 @@ addic7edApi.search('Eureka', 2, 1).then(function(subtitlesList) {
 /* (<(\b(img|style|script|head|link)\b)(([^>]*\/>)|([^\7]*(<\/\2[^>]*>)))|(<\bimg\b)[^>]*>|(\b(background|style)\b=\s*"[^"]*"))
 
 */
-app.get('/', function(req, res) {
-	var params = {
-		title: 'Hey',
-		message: 'Hello there!'
-	};
-	res.render('index', params);
-	next();
-});
-app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
+// app.get('/', function(req, res) {
+	// var params = {
+		// title: 'Hey',
+		// message: 'Hello there!'
+	// };
+	// res.render('index', params);
+	// next();
+// });
+app.get('/:show?/:season?/:episode?/:language?', function(req, res, next) {
 	var
 		headers = {
 			'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'
@@ -189,10 +189,11 @@ app.get('/:show/:season?/:episode?/:language?', function(req, res, next) {
 		console.log("pulled shows from cache");
 	}
 
+		requestData.shows = JSON.parse(localStorage.getItem('shows')).items || [];
+		requestData.title = 'select show';
 
 	if (params.show) {
 		// call season list
-		requestData.shows = JSON.parse(localStorage.getItem('shows')).items || [];
 
 		requestData.title = requestData.shows.slice().filter((s) => s.id == params.show).pop().name || 'title not loaded'
 		// TODO:
