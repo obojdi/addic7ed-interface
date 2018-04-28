@@ -14,6 +14,9 @@ var
 	cheerio = require('cheerio'),
 	moment = require('moment'),
 	Q = require("q"),
+	cookieParser = require('cookie-parser'),
+	fs = require('fs'),
+
 
 	// 
 
@@ -21,9 +24,11 @@ var
 	users = require('./routes/users'),
 	routes = require('./routes/routes'),
 	texts = require('./app/js/data'),
+	// test = require('./routes/test'),
 	// 
 	// 
 	app = express();
+require('dotenv').config();
 
 const urls = {
 	sample: 'http://www.addic7ed.com/serie/Eureka/2/1/1',
@@ -57,6 +62,10 @@ app.set("view engine", "pug");
 // app.use(bodyParser.urlencoded({
 // extended: false
 // }));
+
+// cookie parser
+app.use(cookieParser());
+
 app.use(favicon(path.join(__dirname, 'favicon.ico')));
 
 app.use(
@@ -80,19 +89,93 @@ app.get('/favicon.ico', function(req, res) {
 	res.status(204);
 });
 
+// var request = request.defaults({
+// jar: true
+// })
+var
+	j = request.jar(),
+	j2 = request.jar()
+url_login = 'http://www.addic7ed.com/dologin.php',
+	url_download = 'http://www.addic7ed.com/updated/17/1824/4'
+
+app.get('/test', (req, resp) => {
+	// console.log('Cookies 1: ', req.cookies)
+	var
+		filename = '',
+		dir = '/test/';
+	request.post(url_login, {
+		form: {
+			username: process.env.USERNAME,
+			password: process.env.PASSWORD
+		},
+		jar: j
+	}, function(err, res, body) {
+		var
+			cookie_string = j.getCookieString(url_login),
+			cookies = j.getCookies(url_login),
+			cookie1 = request.cookie(cookie_string);
+
+		// console.log('cookie_string: ', cookie_string)
+		// console.log('cookies: ', cookies)
+		j.setCookie(cookie1, url_login);
+
+		// console.log('Cookies 2: ', res.cookies)
+		request.get(url_download, {
+			jar: j
+		}, (e, r, b) => {
+			var
+				cookie_string2 = j2.getCookieString(url_download),
+				cookies2 = j2.getCookies(url_download);
+			// console.log('cookie_string 2: ', cookie_string2)
+			// console.log('cookies 2: ', cookies2)
+			// console.log('Cookies 3: ', r.cookies)
+			// console.log(r.headers)
+
+			// console.log('body: ', b)
+			var
+				contentDisposition = r.headers['content-disposition'],
+				match = contentDisposition && contentDisposition.match(/(filename=|filename\*='')(.*)$/);
+			filename = match && match[2] || 'default-filename.out';
+			console.log('filename')
+			filename = filename.replace(/\s/g, '');
+			filename = filename.replace(/\"/g, '');
+			// dir = __dirname + '/test/txt/';
+			// filename = 'a.txt';
+
+			// filename = dir + filename;
+			console.log(filename)
+			console.log(path.join(__dirname, dir, filename))
+			console.log(path.parse(path.join(__dirname, dir, filename)))
+			// resp.setHeader(  'content-type', 'text/srt; charset=');
+			resp.setHeader('content-disposition', contentDisposition);
+			// resp.setHeader('content-disposition', 'attachment');
+
+			request.get('http://www.addic7ed.com/logout.php', () => {
+
+				resp.end(b)
+			});
+		})
+		// .pipe(fs.createWriteStream(path.join(__dirname, dir, filename)))
+		// .pipe(fs.createWriteStream(path.join('./test/', 'a.srt')))
+		// .pipe(fs.createWriteStream(path.join('./test/',filename)))
+		// .pipe(fs.createWriteStream(path.join( dir, filename)))
+		// .pipe(fs.createWriteStream(__dirname+'/test/Eureka-02x03-Unpredictable.WS.DSR.XviD-SYS.Dutch.updated.Addic7ed.com.srt'))
+
+	})
+});
 // app.use('/', index);
 // app.use('/users', users);
-var addic7edApi = require('addic7ed-api');
-addic7edApi.search('Eureka', 2, 1).then(function(subtitlesList) {
-	var subInfo = subtitlesList[0];
-	if (subInfo) {
-		// console.log('addic7edApi.search:')
-		// console.log(subInfo)
-		// addic7edApi.download(subInfo, './South.Park.S19E06.srt').then(function() {
-		// console.log('Subtitles file saved.');
-		// });
-	}
-});
+// var addic7edApi = require('addic7ed-api');
+// addic7edApi.search('Eureka', 2, 1).then(function(subtitlesList) {
+// var subInfo = subtitlesList[0];
+// if (subInfo) {
+// console.log('addic7edApi.search:')
+// console.log(subInfo)
+// addic7edApi.download(subInfo, './South.Park.S19E06.srt').then(function() {
+// console.log('Subtitles file saved.');
+// });
+// }
+// });
 /**
 /* if no route specified then load all shows
 /* else try to parse url and check result for showID
@@ -101,12 +184,12 @@ addic7edApi.search('Eureka', 2, 1).then(function(subtitlesList) {
 
 */
 // app.get('/', function(req, res) {
-	// var params = {
-		// title: 'Hey',
-		// message: 'Hello there!'
-	// };
-	// res.render('index', params);
-	// next();
+// var params = {
+// title: 'Hey',
+// message: 'Hello there!'
+// };
+// res.render('index', params);
+// next();
 // });
 app.get('/:show?/:season?/:episode?/:language?', function(req, res, next) {
 	var
@@ -189,8 +272,8 @@ app.get('/:show?/:season?/:episode?/:language?', function(req, res, next) {
 		console.log("pulled shows from cache");
 	}
 
-		requestData.shows = JSON.parse(localStorage.getItem('shows')).items || [];
-		requestData.title = 'select show';
+	requestData.shows = JSON.parse(localStorage.getItem('shows')).items || [];
+	requestData.title = 'select show';
 
 	if (params.show) {
 		// call season list
