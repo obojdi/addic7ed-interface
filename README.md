@@ -3,6 +3,8 @@ addic7ed.com UI redesign. Now working after login (session cookie)
 some legacy code will be purged later
 
 ```
+npm i
+bower i
 npm start
 ```
 
